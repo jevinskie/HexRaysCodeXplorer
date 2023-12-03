@@ -6,20 +6,16 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-if(APPLE)
-  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fPIC -arch x86_64")
-else()
-  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fPIC")
-endif()
+# if(APPLE)
+#   set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fPIC -arch x86_64")
+# else()
+#   set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fPIC")
+# endif()
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../cmake)
 
 find_package(IdaSdk REQUIRED)
-
-set(HexRaysSdk_INCLUDE_DIRS ${HexRaysSdk_ROOT_DIR}/include)
-
-include_directories(${HexRaysSdk_INCLUDE_DIRS})
-include_directories(${PROJECT_SOURCE_DIR})
+find_package(HexRaysSdk REQUIRED)
 
 set(src
     "CodeXplorer.cpp"
@@ -57,11 +53,15 @@ set(src
     "reconstructed_place_t.cpp"
     "reconstructed_place_t.h")
 
+add_ida_library(HexRaysCodeXplorerLib ${src})
+ida_target_include_directories(HexRaysCodeXplorerLib SYSTEM PRIVATE
+                                ${HexRaysSdk_INCLUDE_DIRS})
+
 add_ida_plugin(HexRaysCodeXplorer ${PROJECT_SOURCE_DIR}/CodeXplorer.cpp)
 
 set_ida_target_properties(HexRaysCodeXplorer PROPERTIES CXX_STANDARD 17)
 ida_target_include_directories(HexRaysCodeXplorer PRIVATE
-                               ${IdaSdk_INCLUDE_DIRS})
-
-add_ida_library(HexRaysCodeXplorerLib ${src})
+                               ${PROJECT_SOURCE_DIR})
+ida_target_include_directories(HexRaysCodeXplorer SYSTEM PRIVATE
+                               ${HexRaysSdk_INCLUDE_DIRS})
 ida_target_link_libraries(HexRaysCodeXplorer HexRaysCodeXplorerLib)
